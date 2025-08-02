@@ -23,7 +23,7 @@ API pour décoloniser l 'IA
 6. Port : **10000** (par défaut)
 7. Cliquez sur **Create Web Service**
 
-✅ L’API sera disponible à : `https://votre-service.onrender.com`
+✅ L’API sera disponible à : https://refresh-ai.onrender.com 
 
 ## 📡 Endpoints
 

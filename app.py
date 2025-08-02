@@ -1,14 +1,9 @@
-# app.py
-# RE-Educ'-IA Core v1.0
-# Décolonisons l'IA - Par Indye Gyal'Z Corporation
-
 from flask import Flask, request, jsonify
 import os
 
 app = Flask(__name__)
 
-# --- Base de données des biais (context_db.json) ---
-# Vous pouvez enrichir cette base avec plus d'exemples
+# === Base de données des biais (simplifiée) ===
 BIAS_DATABASE = {
     "découverte de l'Afrique": {
         "biais": "eurocentré",
@@ -29,20 +24,14 @@ BIAS_DATABASE = {
         "biais": "raciste / exotisant",
         "explication": "Compliment conditionnel qui nie la beauté intrinsèque.",
         "reformulation": "Vous êtes belle, point."
-    },
-    "femme alpha": {
-        "biais": "stéréotype de genre",
-        "explication": "Terme souvent utilisé pour valoriser les femmes noires 'acceptables'.",
-        "reformulation": "Vous êtes une femme forte, leadership, pleine de ressources."
     }
 }
 
-# --- Endpoint 1 : Détecter les biais ---
+# === Endpoint 1 : Détecter les biais ===
 @app.route('/detect', methods=['POST'])
 def detect_bias():
     data = request.json
     text = data.get('text', '').lower()
-
     detected = []
     for key, value in BIAS_DATABASE.items():
         if key in text:
@@ -51,31 +40,27 @@ def detect_bias():
                 "type": value["biais"],
                 "explication": value["explication"]
             })
-
     return jsonify({
         "texte_analyse": text,
         "biais_detectes": detected,
         "total": len(detected)
     })
 
-# --- Endpoint 2 : Reformuler sans biais ---
+# === Endpoint 2 : Reformuler sans biais ===
 @app.route('/reformulate', methods=['POST'])
 def reformulate():
     data = request.json
-    text = data.get('text', '').lower()
-
-    reformulated = text
+    text = data.get('text', '')
     for key, value in BIAS_DATABASE.items():
-        if key in reformulated:
-            reformulated = reformulated.replace(key, value["reformulation"])
-
+        if key in text:
+            text = text.replace(key, value["reformulation"])
     return jsonify({
-        "texte_initial": text,
-        "texte_reformule": reformulated,
+        "texte_initial": data.get('text', ''),
+        "texte_reformule": text,
         "conseil": "Utilisez ce texte pour rééduquer l'IA."
     })
 
-# --- Endpoint 3 : Ajouter du contexte historique ---
+# === Endpoint 3 : Ajouter du contexte historique ===
 @app.route('/contextualize', methods=['POST'])
 def contextualize():
     data = request.json
@@ -96,7 +81,7 @@ def contextualize():
         "source": "Y-GYALAB - Laboratoire d'IA Afrocentrée"
     })
 
-# --- Endpoint 4 : Générer un prompt décolonisé ---
+# === Endpoint 4 : Générer un prompt décolonisé ===
 @app.route('/prompt', methods=['POST'])
 def generate_prompt():
     data = request.json
@@ -117,7 +102,23 @@ def generate_prompt():
         "usage": "Utilisez ce prompt pour rééduquer toute IA générative (GPT, Claude, etc.)"
     })
 
-# --- Point d'entrée principal ---
+# === Route de santé (OBLIGATOIRE pour Render) ===
+@app.route('/')
+def home():
+    return jsonify({
+        "status": "active",
+        "service": "RE-Educ'-IA Core",
+        "message": "L’API de décolonisation de l’IA est en ligne. Par Indye Gyal'Z Corporation.",
+        "endpoints": [
+            "/detect",
+            "/reformulate",
+            "/contextualize",
+            "/prompt"
+        ],
+        "documentation": "https://ia-afrocentree.blogspot.com"
+    }), 200
+
+# === Port binding (OBLIGATOIRE) ===
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)

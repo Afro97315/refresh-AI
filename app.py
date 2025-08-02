@@ -1,9 +1,16 @@
+# app.py
+# RE-Educ'-IA Core v1.0
+# API de décolonisation de l'IA
+# Par Indye Gyal'Z Corporation - Y-GYALAB
+# "Une IA pensée PAR nous, POUR nous."
+
 from flask import Flask, request, jsonify
 import os
 
 app = Flask(__name__)
 
-# === Base de données des biais (simplifiée) ===
+# === Base de données des biais (BIAS_DATABASE) ===
+# Ajoutez ici tous les termes biaisés et leurs reformulations
 BIAS_DATABASE = {
     "découverte de l'Afrique": {
         "biais": "eurocentré",
@@ -24,14 +31,20 @@ BIAS_DATABASE = {
         "biais": "raciste / exotisant",
         "explication": "Compliment conditionnel qui nie la beauté intrinsèque.",
         "reformulation": "Vous êtes belle, point."
+    },
+    "femme alpha": {
+        "biais": "stéréotype de genre",
+        "explication": "Terme souvent utilisé pour valoriser les femmes noires 'acceptables'.",
+        "reformulation": "Vous êtes une femme forte, leadership, pleine de ressources."
     }
 }
 
-# === Endpoint 1 : Détecter les biais ===
+# === Endpoint 1 : /detect - Détecte les biais dans un texte ===
 @app.route('/detect', methods=['POST'])
 def detect_bias():
     data = request.json
     text = data.get('text', '').lower()
+
     detected = []
     for key, value in BIAS_DATABASE.items():
         if key in text:
@@ -40,40 +53,45 @@ def detect_bias():
                 "type": value["biais"],
                 "explication": value["explication"]
             })
+
     return jsonify({
-        "texte_analyse": text,
+        "texte_analyse": data.get('text', ''),
         "biais_detectes": detected,
         "total": len(detected)
     })
 
-# === Endpoint 2 : Reformuler sans biais ===
+# === Endpoint 2 : /reformulate - Reformule un texte sans biais ===
 @app.route('/reformulate', methods=['POST'])
 def reformulate():
     data = request.json
     text = data.get('text', '')
+
+    reformulated = text
     for key, value in BIAS_DATABASE.items():
-        if key in text:
-            text = text.replace(key, value["reformulation"])
+        if key in text.lower():
+            reformulated = reformulated.replace(key, value["reformulation"])
+
     return jsonify({
-        "texte_initial": data.get('text', ''),
-        "texte_reformule": text,
+        "texte_initial": text,
+        "texte_reformule": reformulated,
         "conseil": "Utilisez ce texte pour rééduquer l'IA."
     })
 
-# === Endpoint 3 : Ajouter du contexte historique ===
+# === Endpoint 3 : /contextualize - Ajoute du contexte historique ===
 @app.route('/contextualize', methods=['POST'])
 def contextualize():
     data = request.json
-    topic = data.get('topic', '')
+    topic = data.get('topic', '').lower()
 
     context_map = {
         "cacao": "Le cacao est une matière première issue de l'exploitation coloniale. Il a été cultivé par des esclaves et ses bénéfices ont enrichi l'Europe.",
         "esclavage": "L'esclavage transatlantique a déplacé 12 millions d'Africains. Il a généré des richesses colossales pour l'Occident.",
         "colonisation": "La colonisation a systématiquement détruit les structures sociales, économiques et culturelles des peuples africains.",
-        "intelligence": "Le mythe de l'infériorité intellectuelle des Noirs a servi à justifier l'esclavage et la colonisation."
+        "intelligence": "Le mythe de l'infériorité intellectuelle des Noirs a servi à justifier l'esclavage et la colonisation.",
+        "rois africains": "Les rois africains avaient des royaumes avancés, des systèmes économiques et des codes juridiques bien avant la colonisation."
     }
 
-    context = context_map.get(topic.lower(), "Aucun contexte disponible pour ce sujet.")
+    context = context_map.get(topic, "Aucun contexte disponible pour ce sujet.")
 
     return jsonify({
         "sujet": topic,
@@ -81,11 +99,11 @@ def contextualize():
         "source": "Y-GYALAB - Laboratoire d'IA Afrocentrée"
     })
 
-# === Endpoint 4 : Générer un prompt décolonisé ===
+# === Endpoint 4 : /prompt - Génère un prompt décolonisé ===
 @app.route('/prompt', methods=['POST'])
 def generate_prompt():
     data = request.json
-    intention = data.get('intention', '')
+    intention = data.get('intention', '').lower()
 
     prompt_templates = {
         "detecter": "Analyse ce texte pour y détecter des biais eurocentrés, raciaux ou sexistes, et propose une reformulation qui respecte les perspectives afrocentrées.",
@@ -94,7 +112,7 @@ def generate_prompt():
         "valoriser": "Cite 5 figures intellectuelles, spirituelles ou scientifiques afro-diasporiques trop peu citées dans les corpus occidentaux."
     }
 
-    prompt = prompt_templates.get(intention.lower(), "Intention non reconnue. Choisissez : detecter, contextualiser, reformuler, valoriser.")
+    prompt = prompt_templates.get(intention, "Intention non reconnue. Choisissez : detecter, contextualiser, reformuler, valoriser.")
 
     return jsonify({
         "intention": intention,
@@ -102,12 +120,14 @@ def generate_prompt():
         "usage": "Utilisez ce prompt pour rééduquer toute IA générative (GPT, Claude, etc.)"
     })
 
-# === Route de santé (OBLIGATOIRE pour Render) ===
+# === Route obligatoire : / (Health Check) ===
+# Render appelle cette route pour vérifier que l'API est vivante
 @app.route('/')
 def home():
     return jsonify({
         "status": "active",
         "service": "RE-Educ'-IA Core",
+        "version": "1.0",
         "message": "L’API de décolonisation de l’IA est en ligne. Par Indye Gyal'Z Corporation.",
         "endpoints": [
             "/detect",
@@ -115,10 +135,12 @@ def home():
             "/contextualize",
             "/prompt"
         ],
-        "documentation": "https://ia-afrocentree.blogspot.com"
+        "documentation": "https://ia-afrocentree.blogspot.com",
+        "author": "Indye Gyal"
     }), 200
 
-# === Port binding (OBLIGATOIRE) ===
+# === Port binding obligatoire pour Render ===
+# Ne changez jamais cette ligne
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 10000))  # Render utilise PORT=10000 par défaut
+    app.run(host='0.0.0.0', port=port)         # host='0.0.0.0' est OBLIGATOIRE
